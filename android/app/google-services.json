@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "173410778414",
+    "firebase_url": "https://bernie-message-project.firebaseio.com",
+    "project_id": "bernie-message-project",
+    "storage_bucket": "bernie-message-project.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:173410778414:android:f03366c043a526ac338ebf",
+        "android_client_info": {
+          "package_name": "com.example.messaging_firebase_flutter"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "173410778414-1rpprag8hjh09lodqvur0j58uvfaencq.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.messaging_firebase_flutter",
+            "certificate_hash": "ffd6a47baf5c24d3acc611dcb4d52110b544bbee"
+          }
+        },
+        {
+          "client_id": "173410778414-0iber2n40pstpj2d8cpddsq3c061f1ja.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCy9KvHfJimw0m-M-SMP6FsmX_VVivEDMA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "173410778414-0iber2n40pstpj2d8cpddsq3c061f1ja.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
