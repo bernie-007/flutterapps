@@ -61,6 +61,5 @@ class _SplashPageState extends State<SplashPage> {
         Navigator.pushReplacementNamed(context, '/Home');
       }
     }
-    await prefs.clear();
   }
 }

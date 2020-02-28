@@ -16,6 +16,7 @@ class _SignupPageState extends State<SignupPage> {
 
   TextEditingController emailController = new TextEditingController();
   TextEditingController passwordController = new TextEditingController();
+  String defaultName;
 
   @override
   Widget build(BuildContext context) {
@@ -211,6 +212,8 @@ class _SignupPageState extends State<SignupPage> {
 
   void _signUpUser(BuildContext context) async {
     FirebaseUser user;
+    var split = emailController.text.split('@');
+    defaultName = split[0];
     
     try {
       user = (await auth.createUserWithEmailAndPassword(
@@ -219,8 +222,6 @@ class _SignupPageState extends State<SignupPage> {
       ))
         .user;
     } catch (e) {
-      print(e.code);
-      print(e.message);
       if (e.code == 'ERROR_EMAIL_ALREADY_IN_USE') {
         final bar = SnackBar(content: Text(e.message));
         bar.show(context);
@@ -235,9 +236,8 @@ class _SignupPageState extends State<SignupPage> {
   void _pushUserInfo() async {
     Firestore.instance.collection('users').document()
       .setData({
-        'name': '',
-        'email': emailController.text,
-        'password': passwordController.text
+        'name': defaultName,
+        'email': emailController.text
       });
   }
 }

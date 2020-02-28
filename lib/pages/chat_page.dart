@@ -39,21 +39,35 @@ class _ChatPageState extends State<ChatPage> {
           ),
         ),
       ),
-      body: ListView.builder(
-        itemCount: messages.length,
-        reverse: true,
-        itemBuilder: (context, index) {
-          Message message = messages[messages.length - index - 1];
-          return messageList(context, message);
-        },
+      body: GestureDetector(
+        onTap: () => FocusScope.of(context).unfocus(),
+        child: Column(
+          children: <Widget>[
+            Expanded(
+              child: Container(
+                width: width,
+                height: height - 140,
+                child: ListView.builder(
+                  itemCount: messages.length,
+                  reverse: true,
+                  itemBuilder: (context, index) {
+                    Message message = messages[messages.length - index - 1];
+                    return messageList(context, message);
+                  },
+                ),
+              ),
+            ),
+            composerForm(),
+          ],
+        ),
       ),
-      bottomNavigationBar: composerForm(),
     );
   }
 
   Widget composerForm() {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: width * 0.036, vertical: height * 0.023),
+      padding: EdgeInsets.symmetric(horizontal: 10),
+      height: 60,
       width: width,
       color: appColors.lightColor,
       child: Row(

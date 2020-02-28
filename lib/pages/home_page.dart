@@ -69,7 +69,7 @@ class _HomePageState extends State<HomePage> {
         ],
       ),
       body: StreamBuilder<QuerySnapshot>(
-        stream: Firestore.instance.collection('user').snapshots(),
+        stream: Firestore.instance.collection('users').snapshots(),
         builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
           if (snapshot.hasError)
             return Center(
@@ -77,7 +77,9 @@ class _HomePageState extends State<HomePage> {
             );
           switch (snapshot.connectionState) {
             case ConnectionState.waiting:
-              return CircularProgressIndicator();
+              return Center(
+                child: CircularProgressIndicator()
+              );
             default:
               return ListView.builder(
                 itemCount: snapshot.data.documents.length,
@@ -159,7 +161,8 @@ class _HomePageState extends State<HomePage> {
               Container(
                 width: width * 0.6,
                 child: Text(
-                  user['lasts'][email]['text'] != null ? user['lasts'][email]['text'] : "",
+                  user['lasts'] != null && user['lasts'][email] != null
+                  ? user['lasts'][email]['text'] : "",
                   style: TextStyle(
                     color: appColors.greyColor,
                     fontSize: height * 0.021
@@ -170,7 +173,8 @@ class _HomePageState extends State<HomePage> {
             ],
           ),
           Text(
-            user['lasts'][email]['text'] != null ? user['lasts'][email]['text'] : "",
+            user['lasts'] != null && user['lasts'][email] != null
+            ? user['lasts'][email]['time'] : "",
             style: TextStyle(
               color: appColors.greyColor,
               fontSize: height * 0.021
@@ -210,7 +214,8 @@ class _HomePageState extends State<HomePage> {
                     Container(
                       width: width * 0.5,
                       child: Text(
-                        user['lasts'][email]['text'] != null ? user['lasts'][email]['text'] : "",
+                        user['lasts'] != null && user['lasts'][email] != null
+                        ? user['lasts'][email]['text'] : "",
                         style: TextStyle(
                           color: appColors.greyColor,
                           fontSize: height * 0.021
@@ -221,7 +226,8 @@ class _HomePageState extends State<HomePage> {
                   ],
                 ),
                 Text(
-                  user['lasts'][email]['text'] != null ? user['lasts'][email]['text'] : "",
+                  user['lasts'] != null && user['lasts'][email] != null
+                  ? user['lasts'][email]['time'] : "",
                   style: TextStyle(
                     color: appColors.greyColor,
                     fontSize: height * 0.021
@@ -341,7 +347,8 @@ class _HomePageState extends State<HomePage> {
                     Container(
                       width: width * 0.3,
                       child: Text(
-                        user['lasts'][email]['text'] != null ? user['lasts'][email]['text'] : "",
+                        user['lasts'] != null && user['lasts'][email] != null
+                        ? user['lasts'][email]['text'] : "",
                         style: TextStyle(
                           color: appColors.greyColor,
                           fontSize: height * 0.021
@@ -367,8 +374,11 @@ class _HomePageState extends State<HomePage> {
 
   void _getCurrentUser() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    email = prefs.getString('email');
-    token = prefs.getString('token');
+    setState(() {
+      email = prefs.getString('email');
+      print(email);
+      token = prefs.getString('token');
+    });
   }
   
   void _chatWithUser(User friend) {
@@ -388,7 +398,7 @@ class _HomePageState extends State<HomePage> {
       await auth.signOut();
       SharedPreferences prefs = await SharedPreferences.getInstance();
       await prefs.clear();
-      Navigator.pop(context);
+      Navigator.pushReplacementNamed(context, '/SignIn');
     } catch (e) {
       final bar = new SnackBar(content: Text(e.message));
       bar.show(context);

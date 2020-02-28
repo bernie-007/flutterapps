@@ -48,7 +48,6 @@ class _SigninPageState extends State<SigninPage> {
                 ),
               ),
               Container(
-                height: height * 2 / 3,
                 width: width,
                 padding: EdgeInsets.symmetric(horizontal: width / 8),
                 decoration: BoxDecoration(
@@ -235,6 +234,7 @@ class _SigninPageState extends State<SigninPage> {
                         ),
                       ),
                     ),
+                    SizedBox(height: 10),
                   ],
                 )
               )
