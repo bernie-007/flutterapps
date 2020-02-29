@@ -234,10 +234,15 @@ class _SignupPageState extends State<SignupPage> {
   }
 
   void _pushUserInfo() async {
+    DateTime now = DateTime.now();
+    String createdDate = "${now.year}/${now.month}/${now.day}";
+    String createdTime = "${now.hour > 12 ? now.hour - 12 : now.hour}:${now.minute} ${now.hour > 12 ? 'AM' : 'PM'}";
     Firestore.instance.collection('users').document()
       .setData({
         'name': defaultName,
-        'email': emailController.text
+        'email': emailController.text,
+        'createdDate': createdDate,
+        'createdTime': createdTime
       });
   }
 }

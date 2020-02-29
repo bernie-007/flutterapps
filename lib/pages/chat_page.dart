@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 import 'package:messaging_firebase_flutter/models/color_model.dart';
-import 'package:messaging_firebase_flutter/models/message_model.dart';
-import 'package:messaging_firebase_flutter/models/user_model.dart';
 
 class ChatPage extends StatefulWidget {
 
-  final User friend;
+  final Map<String, dynamic> friend;
 
   ChatPage({this.friend, Key key}) : super(key: key);
 
@@ -17,8 +19,10 @@ class _ChatPageState extends State<ChatPage> {
 
   double width;
   double height;
-  TextEditingController messageController = new TextEditingController();
   bool isSent = false;
+  String email;
+  int mLength;
+  TextEditingController messageController = new TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +36,7 @@ class _ChatPageState extends State<ChatPage> {
       appBar: AppBar(
         centerTitle: true,
         title: Text(
-          widget.friend.name,
+          widget.friend['name'],
           style: TextStyle(
             color: appColors.lightColor,
             fontSize: height * 0.026
@@ -47,12 +51,34 @@ class _ChatPageState extends State<ChatPage> {
               child: Container(
                 width: width,
                 height: height - 140,
-                child: ListView.builder(
-                  itemCount: messages.length,
-                  reverse: true,
-                  itemBuilder: (context, index) {
-                    Message message = messages[messages.length - index - 1];
-                    return messageList(context, message);
+                child: StreamBuilder<QuerySnapshot>(
+                  stream: Firestore.instance.collection('messages')
+                            .where('sender', isEqualTo: email)
+                            .where('receiver', isEqualTo: widget.friend['email'])
+                            .orderBy('date')
+                            .orderBy('time')
+                            .snapshots(),
+                  builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                    if (snapshot.hasError)
+                      return Center(
+                        child: Text(snapshot.error),
+                      );
+                    switch (snapshot.connectionState) {
+                      case ConnectionState.waiting:
+                        return Center(
+                          child: CircularProgressIndicator(),
+                        );
+                      default:
+                        return ListView.builder(
+                          itemCount: snapshot.data.documents.length,
+                          reverse: true,
+                          itemBuilder: (context, index) {
+                            mLength = snapshot.data.documents.length;
+                            var message = snapshot.data.documents[mLength - index - 1];
+                            return messageList(context, message);
+                          },
+                        );
+                    }
                   },
                 ),
               ),
@@ -88,18 +114,7 @@ class _ChatPageState extends State<ChatPage> {
             iconSize: height * 0.036,
             color: Theme.of(context).primaryColor,
             onPressed: () {
-              var jsonMsg = {
-                'id': messages.length,
-                'sender': currentUser,
-                'receiver': widget.friend,
-                'text': messageController.text,
-                'time': '10:28 PM'
-              };
-              var newMsg = Message.fromJson(jsonMsg);
-              setState(() {
-                messageController.text = '';
-                messages.add(newMsg);
-              });
+              _sendMessage();
             },
           )
         ],
@@ -108,9 +123,8 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   Widget messageList(BuildContext context, message) {
-    User sender = message.sender;
     bool isMe = false;
-    if (sender.id == currentUser.id) isMe = true;
+    if (message['sender'] == email) isMe = true;
     else isMe = false;
     
     return Column(
@@ -147,7 +161,7 @@ class _ChatPageState extends State<ChatPage> {
                 ),
               ),
               child: Text(
-                message.text,
+                message['text'],
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: height * 0.021,
@@ -159,5 +173,61 @@ class _ChatPageState extends State<ChatPage> {
         ),
       ],
     );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _getCurrentUser();
+  }
+
+  void _getCurrentUser() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      email = prefs.getString('email');
+    });
+  }
+
+  void _sendMessage() async {
+    if (messageController.text != null && messageController.text != '') {
+      String text = messageController.text;
+      DateTime now = DateTime.now();
+      String sentDate = "${now.year}/${now.month}/${now.day}";
+      String sentTime = "${now.hour > 12 ? now.hour - 12 : now.hour}:${now.minute} ${now.hour > 12 ? 'AM' : 'PM'}";
+      // store message on real-time database
+      Firestore.instance.collection('messages').document()
+        .setData({
+          'sender': email,
+          'receiver': widget.friend['email'],
+          'text': messageController.text,
+          'time': sentTime,
+          'date': sentDate
+        });
+      // update users collection
+      QuerySnapshot qSnapshot = await Firestore.instance.collection('users')
+        .where('email', isEqualTo: widget.friend['email'])
+        .getDocuments();
+
+      qSnapshot.documents.forEach((dSnapshot) {
+        if (mLength != null && mLength > 0) {
+          dSnapshot.reference.updateData({
+            '${email.toString()}': {
+              'time': sentTime,
+              'text': text,
+              'date': sentDate
+            }
+          });
+        } else {
+          dSnapshot.reference.setData({
+            '${email.toString()}': {
+              'time': sentTime,
+              'text': text,
+              'date': sentDate
+            }
+          });
+        }
+      });
+      messageController.text = '';
+    }
   }
 }

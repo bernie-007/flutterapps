@@ -5,7 +5,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:snack/snack.dart';
 
 import 'package:messaging_firebase_flutter/models/color_model.dart';
-import 'package:messaging_firebase_flutter/models/user_model.dart';
 import 'package:messaging_firebase_flutter/pages/chat_page.dart';
 
 final FirebaseAuth auth = FirebaseAuth.instance;
@@ -37,7 +36,7 @@ class _HomePageState extends State<HomePage> {
     height = size.height;
 
     return Scaffold(
-      backgroundColor: appColors.greyColor,
+      backgroundColor: appColors.darkColor,
       appBar: AppBar(
         leading: IconButton(
           icon: Icon(
@@ -48,7 +47,7 @@ class _HomePageState extends State<HomePage> {
           onPressed: (){}
         ),
         title: Text(
-          "Welcome, ${currentUser.name}",
+          "Home",
           style: TextStyle(
             color: appColors.lightColor,
             fontSize: height * 0.026
@@ -84,10 +83,14 @@ class _HomePageState extends State<HomePage> {
               return ListView.builder(
                 itemCount: snapshot.data.documents.length,
                 itemBuilder: (context, index) {
-                  var doc = snapshot.data.documents[index];
+                  var doc = snapshot.data.documents[index]; 
                   return GestureDetector(
                     onTap: () {
-                      _chatWithUser(user1);
+                      var friend = {
+                        'name': doc['name'],
+                        'email': doc['email']
+                      };
+                      _chatWithUser(friend);
                     },
                     onHorizontalDragStart: (DragStartDetails details) {
                       fPosX = details.globalPosition.dx;
@@ -108,7 +111,9 @@ class _HomePageState extends State<HomePage> {
                       posX = fPosX - details.globalPosition.dx;
                       posY = fPosY - details.globalPosition.dy;
                     },
-                    child: callItem == doc['email']
+                    child: doc['email'] == email
+                    ? SizedBox.shrink()
+                    : callItem == doc['email']
                     ? callLayout(context, doc)
                     : removeItem == doc['email']
                     ? removeLayout(context, doc)
@@ -161,8 +166,8 @@ class _HomePageState extends State<HomePage> {
               Container(
                 width: width * 0.6,
                 child: Text(
-                  user['lasts'] != null && user['lasts'][email] != null
-                  ? user['lasts'][email]['text'] : "",
+                  user[email.split('.')[0]] != null
+                  ? user[email.split('.')[0]][email.split('.')[1]]['text'] : "",
                   style: TextStyle(
                     color: appColors.greyColor,
                     fontSize: height * 0.021
@@ -172,13 +177,30 @@ class _HomePageState extends State<HomePage> {
               ),
             ],
           ),
-          Text(
-            user['lasts'] != null && user['lasts'][email] != null
-            ? user['lasts'][email]['time'] : "",
-            style: TextStyle(
-              color: appColors.greyColor,
-              fontSize: height * 0.021
-            ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              Text(
+                user[email.split('.')[0]] != null
+                  ? user[email.split('.')[0]][email.split('.')[1]]['date']
+                  : user['createdDate'],
+                style: TextStyle(
+                  color: appColors.greyColor,
+                  fontSize: height * 0.017
+                ),
+              ),
+              SizedBox(height: 5),
+              Text(
+                user[email.split('.')[0]] != null
+                  ? user[email.split('.')[0]][email.split('.')[1]]['time'] 
+                  : user['createdTime'],
+                style: TextStyle(
+                  color: appColors.greyColor,
+                  fontSize: height * 0.021
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -214,8 +236,9 @@ class _HomePageState extends State<HomePage> {
                     Container(
                       width: width * 0.5,
                       child: Text(
-                        user['lasts'] != null && user['lasts'][email] != null
-                        ? user['lasts'][email]['text'] : "",
+                        user[email.split('.')[0]] != null
+                          ? user[email.split('.')[0]][email.split('.')[1]]['text']
+                          : "",
                         style: TextStyle(
                           color: appColors.greyColor,
                           fontSize: height * 0.021
@@ -225,14 +248,32 @@ class _HomePageState extends State<HomePage> {
                     )
                   ],
                 ),
-                Text(
-                  user['lasts'] != null && user['lasts'][email] != null
-                  ? user['lasts'][email]['time'] : "",
-                  style: TextStyle(
-                    color: appColors.greyColor,
-                    fontSize: height * 0.021
-                  ),
-                  overflow: TextOverflow.ellipsis,
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: <Widget>[
+                    Text(
+                      user[email.split('.')[0]] != null
+                        ? user[email.split('.')[0]][email.split('.')[1]]['date']
+                        : user['createdDate'],
+                      style: TextStyle(
+                        color: appColors.greyColor,
+                        fontSize: height * 0.017
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    SizedBox(height: 5),
+                    Text(
+                      user[email.split('.')[0]] != null
+                        ? user[email.split('.')[0]][email.split('.')[1]]['time']
+                        : user['createdTime'],
+                      style: TextStyle(
+                        color: appColors.greyColor,
+                        fontSize: height * 0.021
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -241,8 +282,8 @@ class _HomePageState extends State<HomePage> {
             color: appColors.pinkColor,
             width: width * 0.15,
             padding: EdgeInsets.only(
-              top: 16,
-              bottom: 16
+              top: 12,
+              bottom: 12
             ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
@@ -277,7 +318,7 @@ class _HomePageState extends State<HomePage> {
             color: appColors.primaryColor,
             width: width * 0.4,
             padding: EdgeInsets.symmetric(
-              vertical: 16
+              vertical: 12
             ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
@@ -347,8 +388,9 @@ class _HomePageState extends State<HomePage> {
                     Container(
                       width: width * 0.3,
                       child: Text(
-                        user['lasts'] != null && user['lasts'][email] != null
-                        ? user['lasts'][email]['text'] : "",
+                        user[email.split('.')[0]] != null
+                          ? user[email.split('.')[0]][email.split('.')[1]]['text']
+                          : "",
                         style: TextStyle(
                           color: appColors.greyColor,
                           fontSize: height * 0.021
@@ -375,13 +417,13 @@ class _HomePageState extends State<HomePage> {
   void _getCurrentUser() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
+      name = prefs.getString('name');
       email = prefs.getString('email');
-      print(email);
       token = prefs.getString('token');
     });
   }
   
-  void _chatWithUser(User friend) {
+  void _chatWithUser(Map<String, dynamic> friend) {
     setState(() {
       callItem = "";
       removeItem = "";
